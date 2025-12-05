@@ -27,13 +27,9 @@ class HomeController extends Controller
         $sickCount = Resident::where('is_sick', true)->count();
 
         // 3. Pass data to view
-        return view('welcome', compact(
-            'totalResidents', 
-            'menCount', 
-            'womenCount', 
-            'childrenCount', 
-            'pregnantCount', 
-            'sickCount'
-        ));
+        return view('home', compact(
+    'totalResidents', 'menCount', 'womenCount', 
+    'childrenCount', 'pregnantCount', 'sickCount'
+    ));
     }
 }

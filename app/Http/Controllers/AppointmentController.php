@@ -3,27 +3,40 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Appointment;
+use Illuminate\Support\Facades\Auth;
 
 class AppointmentController extends Controller
 {
-    /**
-     * Show the form for creating a new appointment.
-     *
-     * @return \Illuminate\View\View
-     */
     public function create()
     {
-        // This assumes your refactored Blade file is stored as 
-        // 'resources/views/appointment.blade.php' and uses the .blade.php extension.
-        return view('appointment');
+        // Fetch appointments from local DB for the logged-in user
+        $appointments = Appointment::where('user_id', Auth::id())
+                                   ->orderBy('date', 'desc')
+                                   ->get();
+
+        return view('appointment', compact('appointments'));
     }
 
-    // You would add a 'store' method here later to handle the form submission, 
-    // but the front-end is currently handling submission via JavaScript/Firestore.
-    /*
     public function store(Request $request)
     {
-        // ... Laravel logic to validate and save data (if not using Firestore) ...
+        // 1. Validate inputs
+        $request->validate([
+            'appointmentDate' => 'required|date',
+            'appointmentTime' => 'required',
+            'reason' => 'required|string',
+        ]);
+
+        // 2. Save to local SQL database
+        Appointment::create([
+            'user_id' => Auth::id(),
+            'date' => $request->appointmentDate,
+            'time' => $request->appointmentTime,
+            'reason' => $request->reason,
+            'status' => 'Pending'
+        ]);
+
+        // 3. Redirect back with success message
+        return redirect()->back()->with('success', 'Appointment booked successfully!');
     }
-    */
 }

@@ -18,19 +18,28 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
-
-// --- Auth Routes (Dashboard/Logout) ---
+// --- Auth Routes (Protected Pages) ---
+// Anything inside this group requires the user to be logged in
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     
     Route::get('/dashboard', function () {
-        // You can redirect to home or show a specific admin dashboard
         return redirect()->route('home');
     })->name('dashboard');
+
+    // MOVED: Appointment routes are now protected
+    Route::get('/appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
+    Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+
+    // OPTIONAL: You likely want to protect requests too
+    Route::get('/requests/create', [RequestController::class, 'create'])->name('requests.create');
 });
 
-Route::get('/appointments/create', [AppointmentController::class, 'create'])->name('appointments.create');
+Route::post('/health-profile', [RequestController::class, 'store'])->name('health_profile.store');
 
-// Or whatever your controller is named
-
-Route::get('/requests/create', [RequestController::class, 'create'])->name('requests.create');
+Route::middleware('auth')->group(function () {
+    // ... existing routes ...
+    
+    // Add this new route
+    Route::post('/requests/submit', [RequestController::class, 'submitChange'])->name('requests.submit');
+});

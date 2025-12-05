@@ -3,57 +3,81 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\HealthProfile;
+use App\Models\ChangeRequest;
 
 class RequestController extends Controller
 {
-    /**
-     * Show the user's current health records.
-     *
-     * @return \Illuminate\View\View
-     */
     public function create()
     {
-        // 1. Simulate fetching the authenticated user's health record
-        // In a real application, you would use Auth::id() and a database query here.
-        $healthRecord = $this->getMockHealthRecord();
+        // 1. Fetch the logged-in user's profile
+        $healthProfile = HealthProfile::where('user_id', Auth::id())->first();
 
-        // 2. Return the view, passing the health record data
-        return view('request_changes', compact('healthRecord'));
+        // 2. Pass it to the view (it will be null if they are new)
+        return view('request_changes', compact('healthProfile'));
     }
 
-    /**
-     * Mock function to generate sample health data for display.
-     * * @return array
-     */
-    protected function getMockHealthRecord()
+    public function store(Request $request)
+{
+    // 1. Validate
+    $validated = $request->validate([
+        'blood_type' => 'required|string|max:10',
+        'allergies' => 'nullable|string',
+        'critical_allergies' => 'nullable|boolean',
+        // NEW VALIDATION
+        'philhealth_number' => 'nullable|string|max:20',
+        'emergency_contact_name' => 'required|string|max:255',
+        'emergency_contact_phone' => 'required|string|max:20',
+    ]);
+
+    // 2. Convert allergies
+    $allergiesArray = $validated['allergies'] 
+        ? array_map('trim', explode(',', $validated['allergies'])) 
+        : [];
+
+    // 3. Create
+    HealthProfile::create([
+        'user_id' => Auth::id(),
+        'blood_type' => $validated['blood_type'],
+        'allergies' => $allergiesArray,
+        'critical_allergies' => $request->has('critical_allergies'),
+        'status' => 'Active',
+        'clearance' => 'Pending Verification',
+        'last_verified' => now(),
+        // NEW FIELDS MAPPING
+        'philhealth_number' => $validated['philhealth_number'],
+        'emergency_contact_name' => $validated['emergency_contact_name'],
+        'emergency_contact_phone' => $validated['emergency_contact_phone'],
+    ]);
+
+    return redirect()->back()->with('success', 'Health Profile created successfully!');
+}
+public function submitChange(Request $request)
     {
-        return [
-            'blood_type' => 'O+',
-            'last_verified' => '2024-05-15',
-            'allergies' => ['Penicillin', 'Dust Mites'],
-            'critical_allergies' => true,
-            'status' => 'Active',
-            'clearance' => 'Valid',
-            'history' => [
-                [
-                    'date' => '2023-11-20',
-                    'type' => 'Immunization',
-                    'details' => 'Influenza Vaccine (Seasonal)',
-                    'clinic' => 'Brgy. Health Center'
-                ],
-                [
-                    'date' => '2024-03-01',
-                    'type' => 'Check-up',
-                    'details' => 'Routine annual check-up, no issues found.',
-                    'clinic' => 'Dr. Reyes Private Clinic'
-                ],
-                [
-                    'date' => '2024-05-15',
-                    'type' => 'Diagnosis',
-                    'details' => 'Tonsillitis (Prescribed Amoxicillin)',
-                    'clinic' => 'Brgy. Health Center'
-                ],
-            ]
-        ];
+        // 1. Validate
+        $request->validate([
+            'request_type' => 'required|string',
+            'details' => 'required|string',
+            'document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048', // 2MB Max
+        ]);
+
+        // 2. Handle File Upload
+        $path = null;
+        if ($request->hasFile('document')) {
+            // Stores in storage/app/public/documents
+            $path = $request->file('document')->store('documents', 'public');
+        }
+
+        // 3. Save to Database
+        ChangeRequest::create([
+            'user_id' => Auth::id(),
+            'request_type' => $request->request_type,
+            'details' => $request->details,
+            'document_path' => $path,
+            'status' => 'Pending',
+        ]);
+
+        return redirect()->back()->with('success', 'Request submitted successfully!');
     }
 }

@@ -1,0 +1,15 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Appointment extends Model
+{
+    protected $fillable = ['user_id', 'date', 'time', 'reason', 'status'];
+
+    // Optional: Relationship to user
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+}
