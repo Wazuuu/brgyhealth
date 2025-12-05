@@ -19,40 +19,55 @@ class RequestController extends Controller
     }
 
     public function store(Request $request)
-{
-    // 1. Validate
-    $validated = $request->validate([
-        'blood_type' => 'required|string|max:10',
-        'allergies' => 'nullable|string',
-        'critical_allergies' => 'nullable|boolean',
-        // NEW VALIDATION
-        'philhealth_number' => 'nullable|string|max:20',
-        'emergency_contact_name' => 'required|string|max:255',
-        'emergency_contact_phone' => 'required|string|max:20',
-    ]);
+    {
+        // 1. Validate
+        $validated = $request->validate([
+            'blood_type' => 'required|string|max:10',
+            'allergies' => 'nullable|string',
+            'critical_allergies' => 'nullable|boolean',
+            'philhealth_number' => 'nullable|string|max:20',
+            'emergency_contact_name' => 'required|string|max:255',
+            'emergency_contact_phone' => 'required|string|max:20',
+            // NEW VALIDATION
+            'age' => 'required|integer|min:0|max:120',
+            'height' => 'required|numeric|min:0', // cm
+            'weight' => 'required|numeric|min:0', // kg
+        ]);
 
-    // 2. Convert allergies
-    $allergiesArray = $validated['allergies'] 
-        ? array_map('trim', explode(',', $validated['allergies'])) 
-        : [];
+        // 2. Convert allergies
+        $allergiesArray = $validated['allergies'] 
+            ? array_map('trim', explode(',', $validated['allergies'])) 
+            : [];
 
-    // 3. Create
-    HealthProfile::create([
-        'user_id' => Auth::id(),
-        'blood_type' => $validated['blood_type'],
-        'allergies' => $allergiesArray,
-        'critical_allergies' => $request->has('critical_allergies'),
-        'status' => 'Active',
-        'clearance' => 'Pending Verification',
-        'last_verified' => now(),
-        // NEW FIELDS MAPPING
-        'philhealth_number' => $validated['philhealth_number'],
-        'emergency_contact_name' => $validated['emergency_contact_name'],
-        'emergency_contact_phone' => $validated['emergency_contact_phone'],
-    ]);
+        // 3. Calculate BMI
+        // Formula: weight (kg) / (height (m) ^ 2)
+        $bmi = null;
+        if ($validated['height'] > 0 && $validated['weight'] > 0) {
+            $heightInMeters = $validated['height'] / 100;
+            $bmi = $validated['weight'] / ($heightInMeters * $heightInMeters);
+        }
 
-    return redirect()->back()->with('success', 'Health Profile created successfully!');
-}
+        // 4. Create
+        HealthProfile::create([
+            'user_id' => Auth::id(),
+            'blood_type' => $validated['blood_type'],
+            'allergies' => $allergiesArray,
+            'critical_allergies' => $request->has('critical_allergies'),
+            'status' => 'Active',
+            'clearance' => 'Pending Verification',
+            'last_verified' => now(),
+            'philhealth_number' => $validated['philhealth_number'],
+            'emergency_contact_name' => $validated['emergency_contact_name'],
+            'emergency_contact_phone' => $validated['emergency_contact_phone'],
+            // SAVE NEW FIELDS
+            'age' => $validated['age'],
+            'height' => $validated['height'],
+            'weight' => $validated['weight'],
+            'bmi' => $bmi,
+        ]);
+
+        return redirect()->back()->with('success', 'Health Profile created successfully!');
+    }
 public function submitChange(Request $request)
     {
         // 1. Validate

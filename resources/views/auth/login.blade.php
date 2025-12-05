@@ -22,6 +22,10 @@
         <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
             Login
         </button>
+        <div class="flex justify-end mt-1">
+        <a href="{{ route('password.request') }}" class="text-xs text-blue-600 hover:underline">Forgot Password?</a>
+    </div>
+</div>
     </form>
 
     <div class="mt-6 text-center">

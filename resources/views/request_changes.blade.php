@@ -5,14 +5,12 @@
 @section('content')
 <div class="max-w-7xl mx-auto">
 
-    {{-- Show success message if any --}}
     @if(session('success'))
         <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm">
             {{ session('success') }}
         </div>
     @endif
 
-    {{-- CONDITION: Does the user have a Health Profile? --}}
     @if($healthProfile)
     
         {{-- ================= EXISTING USER VIEW ================= --}}
@@ -21,51 +19,60 @@
             🏥 Your Personal Health Records
         </h2>
 
+        {{-- NEW ROW: Age, Height, Weight, BMI --}}
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
+                <h3 class="text-gray-500 text-sm font-medium uppercase">Age</h3>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $healthProfile->age }} <span class="text-sm text-gray-400 font-normal">yrs</span></p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
+                <h3 class="text-gray-500 text-sm font-medium uppercase">Height</h3>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $healthProfile->height }} <span class="text-sm text-gray-400 font-normal">cm</span></p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
+                <h3 class="text-gray-500 text-sm font-medium uppercase">Weight</h3>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $healthProfile->weight }} <span class="text-sm text-gray-400 font-normal">kg</span></p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-teal-500">
+                <h3 class="text-gray-500 text-sm font-medium uppercase">BMI Score</h3>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ number_format($healthProfile->bmi, 1) }}</p>
+                <div class="mt-1 text-xs font-bold 
+                    {{ $healthProfile->bmi < 18.5 ? 'text-blue-500' : 
+                      ($healthProfile->bmi < 25 ? 'text-green-500' : 
+                      ($healthProfile->bmi < 30 ? 'text-orange-500' : 'text-red-500')) }}">
+                    @if($healthProfile->bmi < 18.5) Underweight
+                    @elseif($healthProfile->bmi < 25) Normal
+                    @elseif($healthProfile->bmi < 30) Overweight
+                    @else Obese
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- Existing Cards --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
                 <h3 class="text-gray-500 text-sm font-medium uppercase">Blood Type</h3>
                 <p class="text-3xl font-bold text-gray-900 mt-2">{{ $healthProfile->blood_type }}</p>
-                <span class="text-xs text-gray-500">Last Verified: {{ $healthProfile->last_verified }}</span>
             </div>
 
             <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-pink-500">
-                <h3 class="text-gray-500 text-sm font-medium uppercase">Known Allergies</h3>
-                <p class="text-3xl font-bold text-gray-900 mt-2">
-                    {{ is_array($healthProfile->allergies) ? count($healthProfile->allergies) : 0 }}
+                <h3 class="text-gray-500 text-sm font-medium uppercase">Allergies</h3>
+                <p class="text-xl font-bold text-gray-900 mt-2">
+                    {{ $healthProfile->allergies ? implode(', ', $healthProfile->allergies) : 'None' }}
                 </p>
-                <div class="mt-1 text-xs text-gray-500">
-                    @if($healthProfile->allergies)
-                        {{ implode(', ', $healthProfile->allergies) }}
-                    @else
-                        None
-                    @endif
-                </div>
             </div>
 
             <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
-                <h3 class="text-gray-500 text-sm font-medium uppercase">Resident Status</h3>
+                <h3 class="text-gray-500 text-sm font-medium uppercase">Status</h3>
                 <p class="text-3xl font-bold text-gray-900 mt-2">{{ $healthProfile->status }}</p>
-                <span class="text-xs text-gray-500">Clearance: {{ $healthProfile->clearance }}</span>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-orange-500">
-                <h3 class="text-gray-500 text-sm font-medium uppercase">Emergency Contact</h3>
-                <p class="text-xl font-bold text-gray-900 mt-2">{{ $healthProfile->emergency_contact_name }}</p>
-                <span class="text-sm text-gray-600">📞 {{ $healthProfile->emergency_contact_phone }}</span>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500">
-                <h3 class="text-gray-500 text-sm font-medium uppercase">PhilHealth</h3>
-                <p class="text-2xl font-bold text-gray-900 mt-2">
-                    {{ $healthProfile->philhealth_number ?? 'Not Registered' }}
-                </p>
-            </div>
-        </div>
-
+        {{-- Request Form Section (Keep existing code here) --}}
         <div class="bg-gray-50 p-8 rounded-xl border border-gray-200 mt-12 shadow-inner">
-            <div class="flex justify-between items-center mb-6">
+             {{-- ... existing request form code ... --}}
+             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h3 class="text-xl font-bold text-gray-800">📋 Request Updates or Changes</h3>
                     <p class="text-gray-600 text-sm">Need to update your info, add a family member, or archive a record?</p>
@@ -118,7 +125,7 @@
 
     @else
 
-        {{-- ================= NEW USER FORM VIEW (No Changes here) ================= --}}
+        {{-- ================= NEW USER FORM VIEW ================= --}}
         
         <div class="max-w-2xl mx-auto mt-10">
             <div class="bg-white p-8 rounded-xl shadow-2xl border-t-4 border-blue-600">
@@ -130,6 +137,47 @@
                 <form action="{{ route('health_profile.store') }}" method="POST">
                     @csrf
                     
+                    {{-- NEW: Age, Height, Weight --}}
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                            <input type="number" name="age" required class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
+                            <input type="number" step="0.01" id="height" name="height" required class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="170">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                            <input type="number" step="0.01" id="weight" name="weight" required class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="65">
+                        </div>
+                    </div>
+
+                    {{-- Live BMI Calculation Preview --}}
+                    <div class="mb-6 p-3 bg-blue-50 rounded-lg text-center hidden" id="bmiPreview">
+                        <span class="text-sm text-gray-600">Estimated BMI:</span>
+                        <span class="font-bold text-blue-700 text-lg" id="bmiValue">--</span>
+                    </div>
+
+                    <script>
+                        const hInput = document.getElementById('height');
+                        const wInput = document.getElementById('weight');
+                        const preview = document.getElementById('bmiPreview');
+                        const val = document.getElementById('bmiValue');
+
+                        function calcBMI() {
+                            const h = parseFloat(hInput.value) / 100; // cm to m
+                            const w = parseFloat(wInput.value);
+                            if(h > 0 && w > 0) {
+                                const bmi = (w / (h * h)).toFixed(1);
+                                val.innerText = bmi;
+                                preview.classList.remove('hidden');
+                            }
+                        }
+                        hInput.addEventListener('input', calcBMI);
+                        wInput.addEventListener('input', calcBMI);
+                    </script>
+
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Blood Type</label>
                         <select name="blood_type" required class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
@@ -148,7 +196,7 @@
 
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Allergies (Optional)</label>
-                        <input type="text" name="allergies" placeholder="e.g. Peanuts, Penicillin, Dust (Separate with commas)"
+                        <input type="text" name="allergies" placeholder="e.g. Peanuts, Penicillin, Dust"
                                class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
                     </div>
 

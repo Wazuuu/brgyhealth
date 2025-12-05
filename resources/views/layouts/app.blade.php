@@ -48,9 +48,7 @@
                     @if(request()->routeIs('requests.*')) bg-gray-700 text-white @else hover:bg-gray-800 @endif">
                     🏥 Health Records
                 </a>
-                <a href="#" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-800 text-gray-400">
-                    ⚙️ Settings
-                </a>
+                
             </nav>
             <!-- End Navigation Links -->
 

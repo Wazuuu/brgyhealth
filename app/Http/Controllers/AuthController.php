@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\TwoFactorController;
 
 class AuthController extends Controller
 {
@@ -30,11 +31,10 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
+        // Generate and send the OTP for new users
+        TwoFactorController::generateAndSendOTP($user);
 
-        // Redirect to the home page after signup
-        return redirect()->route('home');
+        return redirect()->route('otp.verify');
     }
 
     // --- Login Logic ---
@@ -50,11 +50,20 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
-        if (Auth::attempt($credentials, $request->remember)) {
-            $request->session()->regenerate();
-            return redirect()->route('home');
+        // 1. Retrieve the user by email
+        $user = User::where('email', $request->email)->first();
+
+        // 2. Check if user exists and password is correct
+        if ($user && Hash::check($request->password, $user->password)) {
+            
+            // 3. INSTEAD of Auth::login, trigger OTP flow
+            TwoFactorController::generateAndSendOTP($user);
+
+            // 4. Redirect to OTP verification page
+            return redirect()->route('otp.verify');
         }
 
+        // 5. If validation fails
         throw ValidationException::withMessages([
             'email' => 'The provided credentials do not match our records.',
         ]);

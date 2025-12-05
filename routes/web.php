@@ -5,6 +5,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\RequestController;
+use App\Http\Controllers\TwoFactorController;
+use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\ForgotPasswordController;
 
 // --- Public Home Page ---
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -42,4 +45,22 @@ Route::middleware('auth')->group(function () {
     
     // Add this new route
     Route::post('/requests/submit', [RequestController::class, 'submitChange'])->name('requests.submit');
+});
+
+Route::middleware('guest')->group(function () {
+    // ... existing login/register routes ...
+
+    // Google Routes
+    Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+
+    // OTP Routes (Guest accessible because user isn't fully logged in yet)
+    Route::get('otp-verify', [TwoFactorController::class, 'show'])->name('otp.verify');
+    Route::post('otp-verify', [TwoFactorController::class, 'verify'])->name('otp.check');
+
+    Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetCode'])->name('password.email');
+    
+    Route::get('reset-password', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset.form');
+    Route::post('reset-password', [ForgotPasswordController::class, 'reset'])->name('password.update');
 });
