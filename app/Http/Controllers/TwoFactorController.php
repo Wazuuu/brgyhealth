@@ -49,6 +49,17 @@ class TwoFactorController extends Controller
             session()->forget('auth_otp_user_id');
             session()->regenerate();
 
+            // ... inside verify method, after Auth::login($user) ...
+
+            Auth::login($user);
+            session()->forget('auth_otp_user_id');
+            session()->regenerate();
+
+            // Redirect based on Role
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+
             return redirect()->route('home');
         }
 

@@ -18,13 +18,29 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-    'name',
-    'email',
-    'password',
-    'google_id',      // New
-    'otp_code',       // New
-    'otp_expires_at', // New
-];
+        'name',
+        'email',
+        'password',
+        'role', // Add this
+        'google_id',
+        'otp_code',
+        'otp_expires_at',
+    ];
+
+    // Helper to check if admin
+    public function isAdmin() {
+        return $this->role === 'admin';
+    }
+
+    // Relationship to Resident
+    public function resident() {
+        return $this->hasOne(Resident::class);
+    }
+    
+    // Relationship to HealthProfile
+    public function healthProfile() {
+        return $this->hasOne(HealthProfile::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.

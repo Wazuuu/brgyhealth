@@ -22,16 +22,20 @@ class RequestController extends Controller
     {
         // 1. Validate
         $validated = $request->validate([
+            'full_name' => 'required|string|max:255', // New Field
+            'gender' => 'required|in:male,female',    // New Field
             'blood_type' => 'required|string|max:10',
             'allergies' => 'nullable|string',
             'critical_allergies' => 'nullable|boolean',
             'philhealth_number' => 'nullable|string|max:20',
             'emergency_contact_name' => 'required|string|max:255',
             'emergency_contact_phone' => 'required|string|max:20',
-            // NEW VALIDATION
             'age' => 'required|integer|min:0|max:120',
-            'height' => 'required|numeric|min:0', // cm
-            'weight' => 'required|numeric|min:0', // kg
+            'height' => 'required|numeric|min:0', 
+            'weight' => 'required|numeric|min:0', 
+            // Optional Health Flags
+            'is_pregnant' => 'nullable|boolean',
+            'is_sick' => 'nullable|boolean',
         ]);
 
         // 2. Convert allergies
@@ -40,14 +44,13 @@ class RequestController extends Controller
             : [];
 
         // 3. Calculate BMI
-        // Formula: weight (kg) / (height (m) ^ 2)
         $bmi = null;
         if ($validated['height'] > 0 && $validated['weight'] > 0) {
             $heightInMeters = $validated['height'] / 100;
             $bmi = $validated['weight'] / ($heightInMeters * $heightInMeters);
         }
 
-        // 4. Create
+        // 4. Create Health Profile
         HealthProfile::create([
             'user_id' => Auth::id(),
             'blood_type' => $validated['blood_type'],
@@ -59,14 +62,30 @@ class RequestController extends Controller
             'philhealth_number' => $validated['philhealth_number'],
             'emergency_contact_name' => $validated['emergency_contact_name'],
             'emergency_contact_phone' => $validated['emergency_contact_phone'],
-            // SAVE NEW FIELDS
             'age' => $validated['age'],
             'height' => $validated['height'],
             'weight' => $validated['weight'],
             'bmi' => $bmi,
         ]);
 
-        return redirect()->back()->with('success', 'Health Profile created successfully!');
+        // 5. AUTOMATICALLY CREATE RESIDENT RECORD
+        // Check if resident exists to prevent duplicates
+        \App\Models\Resident::updateOrCreate(
+            ['user_id' => Auth::id()], // Search criteria
+            [
+                'name' => $validated['full_name'], // Use the name from the form
+                'age' => $validated['age'],
+                'gender' => $validated['gender'],
+                'contact_number' => Auth::user()->email, // Or add a phone field to User
+                'blood_type' => $validated['blood_type'],
+                'allergies' => $validated['allergies'], // Save as string
+                'is_pregnant' => $request->has('is_pregnant'),
+                'is_sick' => $request->has('is_sick'),
+                'status' => 'Active'
+            ]
+        );
+
+        return redirect()->back()->with('success', 'Health Profile created and Resident Record synced!');
     }
 public function submitChange(Request $request)
     {

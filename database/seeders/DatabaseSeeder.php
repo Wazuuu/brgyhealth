@@ -15,6 +15,14 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
+        // Create Admin
+        User::factory()->create([
+            'name' => 'Admin',
+            'email' => 'reyesaivan60@gmail.com',
+            'password' => bcrypt('password'), // Or Hash::make
+            'role' => 'admin', // Ensure this column exists
+        ]);
+
         // FIX: Add this line to actually run the ResidentSeeder
         $this->call(ResidentSeeder::class);
     }
