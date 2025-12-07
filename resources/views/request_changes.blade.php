@@ -16,7 +16,7 @@
         {{-- ================= EXISTING USER VIEW (No Changes) ================= --}}
         {{-- ... (Keep the existing dashboard view logic here) ... --}}
         
-        <h2 class="text-4xl font-extrabold text-gray-800 mb-8">🏥 Your Personal Health Records</h2>
+    
         {{-- (Include your existing grid cards here as before) --}}
         
         {{-- Quick Fix: If you want to see the existing cards code again let me know, 

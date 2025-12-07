@@ -34,6 +34,9 @@
                 <a href="{{ route('admin.requests') }}" class="block py-2.5 px-4 rounded hover:bg-gray-800 {{ request()->routeIs('admin.requests') ? 'bg-gray-700' : '' }}">
                     📋 Change Requests
                 </a>
+                <a href="{{ route('admin.inventory.index') }}" class="block py-2.5 px-4 rounded hover:bg-gray-800 {{ request()->routeIs('admin.inventory.*') ? 'bg-gray-700' : '' }}">
+                    💊 Medicine Inventory
+                </a>
             </nav>
 
             <div class="p-4 border-t border-gray-800">

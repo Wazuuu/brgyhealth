@@ -25,5 +25,7 @@ class DatabaseSeeder extends Seeder
 
         // FIX: Add this line to actually run the ResidentSeeder
         $this->call(ResidentSeeder::class);
+
+        $this->call(MedicineSeeder::class);
     }
 }

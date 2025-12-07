@@ -10,6 +10,7 @@ use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ResidentController;
+use App\Http\Controllers\InventoryController; // <--- Added this
 
 // --- Public Home Page ---
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -65,8 +66,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
     // =========================================================
-    // RESIDENT ROUTES (ORDER IS CRITICAL HERE)
-    // Specific routes must come BEFORE wildcard {id} routes
+    // RESIDENT ROUTES
     // =========================================================
 
     // A. Specific Pages
@@ -77,12 +77,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/residents', [AdminController::class, 'residents'])->name('residents');
     Route::post('/residents', [ResidentController::class, 'store'])->name('residents.store');
 
-    // C. Wildcard Routes (Routes with {id}) - These capture anything else
+    // C. Wildcard Routes (Must come LAST)
     Route::get('/residents/{id}', [ResidentController::class, 'show'])->name('residents.show');
     Route::get('/residents/{id}/edit', [ResidentController::class, 'edit'])->name('residents.edit');
     Route::post('/residents/{id}', [ResidentController::class, 'update'])->name('residents.update');
     Route::post('/residents/{id}/archive', [ResidentController::class, 'archive'])->name('residents.archive');
     Route::post('/residents/{id}/restore', [ResidentController::class, 'restore'])->name('residents.restore');
+
+    // =========================================================
+    // INVENTORY ROUTES (Added)
+    // =========================================================
+    Route::resource('inventory', InventoryController::class);
 
     // =========================================================
     // OTHER ADMIN ROUTES
